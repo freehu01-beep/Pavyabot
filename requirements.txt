@@ -1,6 +1,6 @@
 pyrogram==2.0.106
-tgcrypto
-flask
-google-genai
+TgCrypto
 requests
-asyncio
+Flask
+google-generativeai
+psycopg2-binary
