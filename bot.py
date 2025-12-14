@@ -208,16 +208,11 @@ def auto_adjust_mood_from_emotions(emotions: dict) -> str:
 def detect_emotion(text: str) -> str:
     try:
         result = emotion_client.text_classification(text)
-label = result[0]['label'].lower()
-return label
-        flat = results[0]
-        flat_sorted = sorted(flat, key=lambda x: x["score"], reverse=True)
-        label = flat_sorted[0]["label"].lower()
+        label = result[0]['label'].lower()
         return label
     except Exception as e:
         logger.error(f"Emotion detection error: {e}")
         return "neutral"
-
 
 def choose_personality_line(mood: str, emotion: str) -> str:
     mood = mood if mood in BASE_MOODS else "flirty"
