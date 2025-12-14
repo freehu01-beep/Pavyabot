@@ -1,4 +1,3 @@
-python-telegram-bot==20.5
-transformers
-torch
+python-telegram-bot
 pymongo
+huggingface_hub
