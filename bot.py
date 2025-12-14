@@ -43,9 +43,9 @@ relays_col = db["relays"]   # bridge: owner_msg <-> user_msg
 settings_col = db["settings"]  # for relay on/off
 
 # ================== AI MODELS ==================
-logger.info("Loading chat model (DialoGPT-medium)...")
-chat_tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
-chat_model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
+logger.info("Loading chat model (DialoGPT-small)...")
+chat_tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
+chat_model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-small")
 
 logger.info("Loading emotion model (advanced)...")
 emotion_model_name = "j-hartmann/emotion-english-distilroberta-base"
