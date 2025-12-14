@@ -2,7 +2,7 @@ import logging
 import os
 import random
 from datetime import datetime
-
+from huggingface_hub import InferenceClient
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -43,13 +43,8 @@ logger.info("Loading chat model (Flan-T5 via Hugging Face API)...")
 
 client = InferenceClient("google/flan-t5-small", token=os.getenv("HF_TOKEN"))
 
-logger.info("Loading emotion model (advanced)...")
-emotion_model_name = "j-hartmann/emotion-english-distilroberta-base"
-emotion_classifier = pipeline(
-    "text-classification",
-    model=emotion_model_name,
-    top_k=None,
-)
+logger.info("Loading emotion model (advanced via HF API)...")
+emotion_client = InferenceClient("j-hartmann/emotion-english-distilroberta-base", token=os.getenv("HF_TOKEN"))
 
 # ================== PERSONALITY SYSTEM ==================
 BASE_MOODS = ["flirty", "caring", "bold"]
@@ -212,7 +207,9 @@ def auto_adjust_mood_from_emotions(emotions: dict) -> str:
 
 def detect_emotion(text: str) -> str:
     try:
-        results = emotion_classifier(text)
+        result = emotion_client.text_classification(text)
+label = result[0]['label'].lower()
+return label
         flat = results[0]
         flat_sorted = sorted(flat, key=lambda x: x["score"], reverse=True)
         label = flat_sorted[0]["label"].lower()
