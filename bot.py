@@ -13,11 +13,7 @@ from telegram.ext import (
 )
 
 from pymongo import MongoClient
-from transformers import (
-    AutoTokenizer,
-    AutoModelForCausalLM,
-    pipeline,
-)
+from huggingface_hub import InferenceClient
 
 # ================== CONFIG FROM ENV ==================
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -43,9 +39,9 @@ relays_col = db["relays"]   # bridge: owner_msg <-> user_msg
 settings_col = db["settings"]  # for relay on/off
 
 # ================== AI MODELS ==================
-logger.info("Loading chat model (DialoGPT-tiny)...")
-chat_tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-tiny")
-chat_model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-tiny")
+logger.info("Loading chat model (Flan-T5 via Hugging Face API)...")
+
+client = InferenceClient("google/flan-t5-small", token=os.getenv("HF_TOKEN"))
 
 logger.info("Loading emotion model (advanced)...")
 emotion_model_name = "j-hartmann/emotion-english-distilroberta-base"
@@ -236,27 +232,22 @@ def choose_personality_line(mood: str, emotion: str) -> str:
 
 
 def generate_chat_reply(user_text: str, history_text: str = "") -> str:
-    input_text = (history_text + " " + user_text).strip()
-    input_ids = chat_tokenizer.encode(input_text + chat_tokenizer.eos_token, return_tensors="pt")
+    # Ye prompt define karta hai Pavya ka style
+    prompt = f"You are Pavya, a cute, flirty and caring girl.\n\n{history_text}\nUser: {user_text}\nPavya:"
 
-    chat_history_ids = chat_model.generate(
-        input_ids,
-        max_length=250,
-        pad_token_id=chat_tokenizer.eos_token_id,
-        temperature=0.8,
-        top_p=0.9,
-        do_sample=True,
-    )
+    try:
+        # Hugging Face API call
+        result = client.text_generation(prompt, max_new_tokens=80)
+        reply = result.strip()
 
-    reply = chat_tokenizer.decode(
-        chat_history_ids[:, input_ids.shape[-1]:][0],
-        skip_special_tokens=True,
-    )
+        if not reply:
+            reply = "Hehe, tumse baat karke mood accha ho gaya 💞"
 
-    reply = reply.strip()
-    if not reply:
-        reply = "Tumse baat karke accha lagta hai… aur bolo na kuch 💕"
-    return reply
+        return reply
+
+    except Exception as e:
+        logger.error(f"HF API error: {e}")
+        return "Network thoda slow hai shayad... bolo na firse 💖"
 
 
 def build_history_string(user_id: int, limit: int = 6) -> str:
