@@ -1,6 +1,4 @@
-pyrogram==2.0.106
-TgCrypto
-requests
-Flask
-google-generativeai
-psycopg2-binary
+python-telegram-bot==20.5
+transformers
+torch
+pymongo
